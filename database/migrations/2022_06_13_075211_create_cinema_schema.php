@@ -36,7 +36,81 @@ class CreateCinemaSchema extends Migration
      */
     public function up()
     {
-        throw new \Exception('implement in coding task 4, you can ignore this exception if you are just running the initial migrations.');
+        Schema::create('movies', function (Blueprint $table) {
+            $table->id();
+            $table->string('title');
+            $table->text('description');
+            $table->string('image')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('shows', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('movie_id')->constrained();
+            $table->dateTime('start_time');
+            $table->unsignedSmallInteger('duration')->comment('in minutes');
+            $table->unsignedSmallInteger('capacity');
+            $table->timestamps();
+        });
+
+
+        Schema::create('showrooms', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->unsignedSmallInteger('capacity');
+            $table->timestamps();
+        });
+
+        Schema::create('shows_showrooms', function (Blueprint $table) {
+            $table->foreignId('show_id')->constrained();
+            $table->foreignId('showroom_id')->constrained();
+            $table->primary(['show_id', 'showroom_id']);
+            $table->timestamps();
+        });
+
+        Schema::create('pricing', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('show_id')->constrained();
+            $table->unsignedDecimal('base_price', 8, 2)->default(0);
+            $table->timestamps();
+        });
+
+        Schema::create('seat_types', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->unsignedSmallInteger('premium_percentage')->default(0);
+            $table->timestamps();
+        });
+
+        Schema::create('seats', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('showroom_id')->constrained();
+            $table->unsignedSmallInteger('row');
+            $table->unsignedSmallInteger('number');
+            $table->unsignedTinyInteger('seat_type_id')->nullable()->default(null);
+            $table->timestamps();
+        });
+
+        Schema::create('bookings', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('show_id')->constrained();
+            $table->foreignId('seat_id')->constrained();
+            $table->string('customer_name');
+            $table->timestamps();
+        });
+
+        Schema::table('shows', function (Blueprint $table) {
+            $table->foreign('showroom_id')->references('id')->on('showrooms');
+        });
+
+        Schema::table('shows_showrooms', function (Blueprint $table) {
+            $table->foreign('show_id')->references('id')->on('shows')->onDelete('cascade');
+            $table->foreign('showroom_id')->references('id')->on('showrooms')->onDelete('cascade');
+        });
+
+        Schema::table('pricing', function (Blueprint $table) {
+            $table->foreign('show_id')->references('id')->on('shows')->onDelete('cascade');
+        });
     }
 
     /**
